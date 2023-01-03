@@ -91,28 +91,28 @@ OpenJDK 64-Bit Server VM Temurin-17.0.5+8 (build 17.0.5+8, mixed mode, sharing)
 
 ## Step2 用 Spring 框架生成一个简单的 Java 应用
 
-打开 https://start.spring.io/ [<sup>1</sup>](#r2)页面，
+打开 https://start.spring.io/ [<sup>2</sup>](#r2)页面：
+
 <img width="1792" alt="image" src="https://user-images.githubusercontent.com/1564431/210331222-4c753dbb-a502-48c9-9c51-3a1cc450a85f.png">
+
 如图设置后，右边点击`add dependencies`，打开依赖管理界面，搜索`web`关键字，选择`spring web`依赖进行添加。
 
-点击页面最下方的`Generate`按钮，生成zip包，下载并另存为（这里假设存为 ~/javaweb-demo/demo.zip）。
+点击页面最下方的`Generate`按钮，生成 zip 包，下载并另存为（这里假设存为 ~/javaweb-demo/demo.zip）。
 
 打开终端：
 
-```shell
+```sh
 cd ~/javaweb-demo
 unzip demo.zip
 ```
 
-
-
 用`vscode`打开应用目录：
 
-```bash
+```sh
 code ~/javaweb-demo/demo
 ```
 
-用`vscode`定位文件`src/main/java/com/example/demo/DemoApplication.java`，并用以下代码替换该文件内代码：
+用`vscode`定位文件`src/main/java/com/example/demo/DemoApplication.java`，并用以下代码替换该文件内代码并保存：
 
 ```java
 package com.example.demo;
@@ -140,6 +140,26 @@ public class DemoApplication {
             
 ```
 
+在`vscode`内置的`shell`界面，默认会定位到项目目录下，用`asdf`针对项目目录锁定 Java 版本并验证：
+
+```sh
+asdf local java adoptopenjdk-17.0.5+8
+java --version
+```
+
+运行 Java web 服务：
+
+```sh
+./mvnw spring-boot:run
+```
+
+应能看到如下输入：
+
+<img width="1428" alt="image" src="https://user-images.githubusercontent.com/1564431/210343583-23490ec2-28b0-414d-b35f-827ca405cc80.png">
+
+这时候，打开 http://localhost:8080/hello?name=David ，如果能看到下方显示，表示本地 Java web 服务运行成功。
+
+<img width="528" alt="image" src="https://user-images.githubusercontent.com/1564431/210343779-97caa249-390e-43d3-bea2-5f2853e48acd.png">
 
 
 ## 参考
