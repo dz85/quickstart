@@ -3,7 +3,7 @@
 - 本文的运行环境为 MacOS/Linux
 - 友情提示：整个过程需要科学上网哦。
 
-## Step1 安装环境
+## x01 安装环境
 
 本机需要准备以下环境：
 
@@ -16,13 +16,13 @@
 - [Extension Pack for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack)
 - [Spring Initializr Java Support](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-spring-initializr)
 
-接下来，要在本机上安装 Java SDK 环境。要实现这一步方法很多，大家可以自行去网络上搜索学习，我这里使用的是我自己比较喜欢的方案。如果对该步骤不感兴趣，可以直接跳入 Step2。
+接下来，要在本机上安装 Java SDK 环境。要实现这一步方法很多，大家可以自行去网络上搜索学习，我这里使用的是我自己比较喜欢的方案。如果对该步骤不感兴趣，可以直接跳入 x02。
 
 我选择的语言环境管理工具是`asdf`，这个是一个很优秀的多语言运行时的 CLI 管理工具，纯 shell 开发，每个语言运行时还支持多版本环境管理，同时支持自定义插件开发，功能强大，可以轻松做到环境隔离，对这方面有洁癖的朋友是一个福音，详细介绍可自行查看官网：https://asdf-vm.com/ ；这里只是简单的介绍怎么用它来安装指定版本的 Java SDK。
 
 如果您是在 MacOS/Linux 下，这里还会涉及到另一个优秀的管理工具`brew`，这里我就不赘述了，也假设大家已经很熟悉它了。
 
-用`brew`安装`asdf`非常简单<sup>[1](#r1)</sup>：
+用`brew`安装`asdf`非常简单[<sup>[1]</sup>](#r1)：
 
 ```sh
 brew install asdf
@@ -89,9 +89,9 @@ OpenJDK Runtime Environment Temurin-17.0.5+8 (build 17.0.5+8)
 OpenJDK 64-Bit Server VM Temurin-17.0.5+8 (build 17.0.5+8, mixed mode, sharing)
 ```
 
-## Step2 用 Spring 框架生成一个简单的 Java 应用
+## x02 用 Spring 框架生成一个简单的 Java 应用
 
-打开 https://start.spring.io/ [<sup>2</sup>](#r2)页面：
+打开 https://start.spring.io/ [<sup>[2]</sup>](#r2)页面：
 
 <img width="1792" alt="image" src="https://user-images.githubusercontent.com/1564431/210331222-4c753dbb-a502-48c9-9c51-3a1cc450a85f.png">
 
@@ -161,8 +161,72 @@ java --version
 
 <img width="528" alt="image" src="https://user-images.githubusercontent.com/1564431/210343779-97caa249-390e-43d3-bea2-5f2853e48acd.png">
 
+## x03 用容器技术部署 Java web 应用
+
+目前常用的容器技术包括 docker/podman 和 k8s，简单的本地部署我们选择 docker/podman，这里有来自 RedHat 的官网文章介绍 docker 和 podman 两者的区别：https://www.redhat.com/zh/topics/containers/what-is-podman#podman-%E4%B8%8Edocker ，有兴趣的朋友可以自行查阅。简单来说：podman由于采用了无守护进程的架构，无论是安全性还是部署的便利度都比docker更优，也不需要使用root权限部署。本例使用 podman 来作为容器管理工具。
+
+先是安装 podman[<sup>[3]</sup>](#r3)：
+
+```sh
+brew install podman
+```
+
+然后创建并启动 podman 虚拟机：
+
+```sh
+podman machine init
+podman machine start
+```
+
+验证是否安装成功：
+
+```sh
+podman info
+```
+
+这一步成功后，接下来，我们用 maven 把 Java web 应用打包成 war 文件并复制到容器部署目录下。这里的操作都是在上一步骤的 Java web 应用的根目录下进行。
+
+首先在`./container/`下新建一个文件`Dockerfile`，文件内容如下并保存：
+
+```Dockerfile
+FROM tomcat:10-jdk17
+COPY ./webapps/demo.war /usr/local/tomcat/webapps/
+RUN apt-get update -y; \
+    apt-get install -y xmlstarlet
+RUN xmlstarlet ed --pf \
+    --inplace \
+    --subnode /Server/Service/Engine/Host --type elem -n Context --value "" \
+    --var new '$prev' \
+    --insert '$new' --type attr -n path --value / \
+    --insert '$new' --type attr -n docBase --value demo.war \
+    --insert '$new' --type attr -n debug --value 0 \
+    --insert '$new' --type attr -n privileged --value true \
+    --insert '$new' --type attr -n reloadable --value true \
+    /usr/local/tomcat/conf/server.xml
+```
+
+回到项目根目录，新建文件`build.sh`，文件内容如下并保存：
+
+```sh
+#!/usr/bin/env sh
+
+name=dz85/javawebapp-demo
+
+./mvnw clean package
+mkdir -p ./container/webapps
+cp ./target/demo-0.0.1-SNAPSHOT.war ./container/webapps/demo.war
+podman system prune -f && podman build -t $name:latest ./container/ && podman push $name:latest docker://docker.io/$name
+```
+
+在终端里授予该文件可执行权限并执行：
+
+```sh
+chmod 755 ./build.sh
+./build.sh
+```
 
 ## 参考
 
 1. [<span id="r1">安装asdf</span>](https://asdf-vm.com/guide/getting-started.html)
 2. [<span id="r2">spring快速入门向导</span>](https://spring.io/quickstart)
+3. [<span id="r3">安装podman</span>](https://podman.io/getting-started/installation)
