@@ -205,12 +205,14 @@ RUN xmlstarlet ed --pf \
     /usr/local/tomcat/conf/server.xml
 ```
 
+打开 https://hub.docker.com/login ，注册一个`docker hub`仓库的账号。
+
 回到项目根目录，新建文件`build.sh`，文件内容如下并保存：
 
 ```sh
 #!/usr/bin/env sh
 
-name={yourname}/javawebapp-demo # 这里yourname要替换成你在docker hub上的用户名
+name={your-nickname}/javawebapp-demo # 这里 your-nickname 要替换成你在docker hub上的用户名
 
 ./mvnw clean package
 mkdir -p ./container/webapps
@@ -225,7 +227,7 @@ chmod 755 ./build.sh
 ./build.sh
 ```
 
-如果一切顺利，则会在本地pc上生成一个名为`{yourname}/javawebapp-demo`的docker镜像，其中已经封装了上面的java项目的运行环境。
+如果一切顺利，则会在本地pc上生成一个名为`{your-nickname}/javawebapp-demo`的docker镜像，其中已经封装了上面的java项目的运行环境。
 
 ## x04 在`AWS`的`ec2`上部署
 
@@ -236,7 +238,7 @@ sudo su
 amazon-linux-extras enable docker
 yum update -y && yum install -y docker
 systemctl enable docker.service && systemctl restart docker.service && systemctl status docker.service
-docker -idt --rm --name demo -p 8080:8080 {yourname}/javawebapp-demo && docker logs -f demo # 这里yourname要替换成你在docker hub上的用户名
+docker -idt --rm --name demo -p 8080:8080 {your-nickname}/javawebapp-demo && docker logs -f demo # 这里 your-nickname 要替换成你在docker hub上的用户名
 ```
 
 打开 http://{your-ec2-ip}:8080/hello?name=David ，你将看到熟悉的web界面；恭喜你，部署成功！
