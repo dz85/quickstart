@@ -210,7 +210,7 @@ RUN xmlstarlet ed --pf \
 ```sh
 #!/usr/bin/env sh
 
-name=dz85/javawebapp-demo
+name={yourname}/javawebapp-demo # 这里yourname要替换成你在docker hub上的用户名
 
 ./mvnw clean package
 mkdir -p ./container/webapps
@@ -224,6 +224,22 @@ podman system prune -f && podman build -t $name:latest ./container/ && podman pu
 chmod 755 ./build.sh
 ./build.sh
 ```
+
+如果一切顺利，则会在本地pc上生成一个名为`{yourname}/javawebapp-demo`的docker镜像，其中已经封装了上面的java项目的运行环境。
+
+## x04 在`AWS`的`ec2`上部署
+
+假设已经新建了一台`ec2`，用`ssh`登陆并执行：
+
+```sh
+sudo su
+amazon-linux-extras enable docker
+yum update -y && yum install -y docker
+systemctl enable docker.service && systemctl restart docker.service && systemctl status docker.service
+docker -idt --rm --name demo -p 8080:8080 {yourname}/javawebapp-demo && docker logs -f demo # 这里yourname要替换成你在docker hub上的用户名
+```
+
+打开 http://{your-ec2-ip}:8080/hello?name=David ，你将看到熟悉的web界面；恭喜你，部署成功！
 
 ## 参考
 
